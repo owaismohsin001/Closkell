@@ -1,0 +1,58 @@
+statements := NEWLINE* expr (NEWLINE+ expr)* NEWLINE+
+
+statement : KEYWORD:let IDENTIFIER+ EQUALS expr 
+	  | KEYWORD:val IDENTIFIER (COMMA IDENTIFIER)* EQUALS expr (COMMA expr)*
+	  | KEYWORD:class IDENTIFIER+ (KEYWORD:where IDENTIFIER (COMMA IDENTIFIER)* EQUALS expr (COMMA expr)*)?
+	  | KEYWORD:case ((expr SARROW expr) | (DATAOR expr SARROW expr)) 
+	    (KEYWORD:where IDENTIFIER (COMMA (IDENTIFIER | RCURLY LCURCLY))* EQUALS expr (COMMA expr)*)?
+	  | KEYWORD:data IDENTIFIER EQUALS expr (DATAOR expr)*
+	  | KEYWORD:curry IDENTIFIER+ EQUALS expr 
+	  | expr
+
+expr := comp-expr ((KEYWORD:or|KEYWORD:and) comp-expr)*
+
+comp-expr : NOT comp-expr
+	  : arith-expr ((EE|NE|LT|GT|GTE|LTE|DCOLON) arith-expr)*
+
+pipeline-expr := arith-expr (PIPELINE arith-expr)*
+
+arith-expr := term ((PLUS|MINUS) term)*
+
+term := factor ((MUL|DIV) factor)*
+
+factor := atom ((DARROW) atom)*
+
+atom := NUMBER
+	| (TT_MINUS | TT_PLUS | TT_ARGPOW | DCOLON) atom
+	| (EXCL atom | IDENTIFIER) (EXCL | expr*)? 
+	| RPAREN expr LPAREN 
+	| LAMBDA (IDENTIFIER)* SARROW expr
+	| if-expr
+	| list-expr 
+	| map-expr
+	| case-expr
+	| record-expr
+	| set-expr
+
+if-expr := KEYWORD:if expr KEYWORD:then expr
+	   (KEYWORD:elif expr KEYWORD:then expr)*
+	   (KEYWORD:else expr)?
+
+list-expr := ARGPOW? LSQUARE ((for-expr | expr) (COMMA (for-expr |expr))*)? RSQUARE
+
+set-expr := HASH LCURLY ((for-expr | expr) (COMMA (for-expr |expr))*)? RCURLY
+
+map-expr := LCURLY (((STRING|INT) COLON expr) (COMMA (STRING|INT) COLON expr)*)? RCURLY
+
+record-expr := (LAMBDA | IDENTIFIER) LCURLY ((IDENTIFIER) (COMMA IDENTIFIER)*)? RCURLY (KEYWORD:inherits expr)?
+
+case-expr := KEYWORD:case expr SARROW
+	     (PATTERN expr SARROW expr)+
+	     (PATTERN expr)?
+             (KEYWORD:where IDENTIFIER (COMMA IDENTIFIER)* EQUALS expr (COMMA expr)*)
+
+pattern-match := (PATTERN expr SARROW expr)+
+		 (PATTERN expr)?
+		 (KEYWORD:where IDENTIFIER (COMMA (IDENTIFIER | RCURLY LCURCLY))* EQUALS expr (COMMA expr)*)?
+
+for-expr := KEYWORD:for IDENTIFIER KEYWORD:in expr PATTERN expr (SARROW KEYWORD:if expr)?
