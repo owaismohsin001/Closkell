@@ -938,6 +938,61 @@ class Record(Map):
     def __repr__(self):
         return f"{self.predefined['types'][-1]} {str(self.value)}" if self.value else f"{self.predefined['types'][-1]}"
 
+class Extensor(Value):
+    def __init__(self):
+        super().__init__()
+
+    def added_to(self, other):
+        return self.copy(), None
+
+    def subbed_by(self, other):
+        return self.copy(), None
+
+    def multed_by(self, other):
+        return self.copy(), None
+
+    def dived_by(self, other):
+        return self.copy(), None
+
+    def lt(self, other):
+        return self.copy(), None
+
+    def lte(self, other):
+        return self.copy(), None
+
+    def gt(self, other):
+        return self.copy(), None
+
+    def gte(self, other):
+        return self.copy(), None
+
+    def ee(self, other):
+        return self.copy(), None
+
+    def ne(self, other):
+        return self.copy(), None
+
+    def execute(self, args):
+        return self.copy(), None
+
+    def argpowed(self):
+        return self.copy(), None
+
+    def is_type(self, other):
+        return Bool(1), None
+
+    def get_property(self, other):
+        return self.copy(), None
+
+    def is_true(self):
+        return Bool(1)
+
+    def copy(self):
+        copy = Extensor()
+        copy.set_pos(self.pos_start, self.pos_end)
+        copy.set_context(self.context)
+        return copy
+
 class Context:
     def __init__(self, display_name, parent=None, parent_entry_pos=None):
         self.display_name = display_name
@@ -1159,7 +1214,7 @@ class Interpreter:
                     context,
                     f"{extension} is not a record"
                 ))
-            extension_record = res.register(extension.execute([Number(1) for _ in range(len(extension.arg_names))]))
+            extension_record = res.register(extension.execute([extensor for _ in range(len(extension.arg_names))]))
             if res.error:
                 res.reset()
                 return res.failure(RTError(
@@ -1190,6 +1245,8 @@ class Interpreter:
         types.append(type_value.value)
         if res.error: return res
         func_body = RecordInstanceNode(type_node, types, elements, node.pos_start, node.pos_end)
+        if node.when:
+            func_body = WhenNode(node.when, func_body, node.pos_start, node.pos_end)
         func_value = Function(func_name, func_body, func_args, context.copy()).set_context(context).set_pos(node.pos_start, node.pos_end)
         res.register(immutableCheck(func_name, context, node.pos_start, node.pos_end))
         if res.error: return res
@@ -1295,8 +1352,13 @@ class Interpreter:
                     f"{recordFunction} is not a function"
                 ))
             recordFunctionCopy = recordFunction.copy()
-            if isinstance(recordFunctionCopy.body, RecordInstanceNode):
-                recordFunction.body.types = [identifier.name, *recordFunction.body.types]
+            if (isinstance(recordFunctionCopy.body, RecordInstanceNode) or (isinstance(recordFunctionCopy.body, WhenNode)
+                and isinstance(recordFunctionCopy.body.expr, RecordInstanceNode
+            ))):
+                if isinstance(recordFunctionCopy.body, WhenNode):
+                    recordFunction.body.expr.types = [identifier.name, *recordFunction.body.expr.types]
+                else:
+                    recordFunction.body.types = [identifier.name, *recordFunction.body.types]
             recordFunctionCopy.body = IfNode([(conditionNode, recordFunction.body)], None, recordFunction.pos_start, recordFunction.pos_end)
             if fWordList(recordFunction.name, "lower") in context.symbol_table.symbol_table:
                 context.symbol_table.set(fWordList(recordFunction.name, "lower"), recordFunction)
@@ -1313,8 +1375,13 @@ class Interpreter:
                     f"{defaultRecordFunction} is not a function"
                 ))
             defaultRecordFunctionCopy = defaultRecordFunction.copy()
-            if isinstance(defaultRecordFunction.body, RecordInstanceNode):
-                defaultRecordFunction.body.types = [identifier.name, *recordFunction.body.types]
+            if (isinstance(defaultRecordFunctionCopy.body, RecordInstanceNode) or (isinstance(defaultRecordFunctionCopy.body, WhenNode)
+                and isinstance(defaultRecordFunctionCopy.body.expr, RecordInstanceNode
+            ))):
+                if isinstance(defaultRecordFunctionCopy.body, WhenNode):
+                    defaultRecordFunction.body.expr.types = [identifier.name, *recordFunction.body.expr.types]
+                else:
+                    defaultRecordFunction.body.types = [identifier.name, *recordFunction.body.types]
             if fWordList(defaultRecordFunction.name, "lower") in context.symbol_table.symbol_table:
                 context.symbol_table.set(fWordList(defaultRecordFunction.name, "lower"), defaultRecordFunction)
             else:
@@ -1439,13 +1506,15 @@ class Interpreter:
         upperFunContainerName = fWordList(funcontainer.name, "upper")
         upperFunctionName = fWordList(function.name, "upper")
         lowerFunctionName = fWordList(function.name, "lower")
-        if isinstance(function.body, RecordInstanceNode):
-            function.body.types = [upperFunContainerName, *function.body.types]
+        if (isinstance(function.body, RecordInstanceNode) or (isinstance(function.body, WhenNode)
+        and isinstance(function.body.expr, RecordInstanceNode))):
+            if isinstance(function.body, WhenNode):
+                function.body.expr.types = [upperFunContainerName, *function.body.expr.types]
+            else:
+                function.body.types = [upperFunContainerName, *function.body.types]
         functionCopy = function.copy()
         functionCopy.body = IfNode([(node.condition, function.body)], None, node.pos_start, node.pos_end)
         funcontainer.functions.append(functionCopy)
-        res.register(immutableCheck(func_name, context, node.pos_start, node.pos_end))
-        if res.error: return res
         context.symbol_table.set(upperFunctionName, String(upperFunctionName).set_context(context).set_pos(node.pos_start, node.pos_end))
         if lowerFunctionName in context.symbol_table.symbol_table:
             context.symbol_table.set(lowerFunctionName, function)
@@ -1523,6 +1592,7 @@ class Interpreter:
 false = Bool(0)
 true = Bool(1)
 null = NullType(0)
+extensor = Extensor()
 global_symbol_table = SymbolTable()
 global_symbol_table.set('false', false)
 global_symbol_table.set('true', true)
