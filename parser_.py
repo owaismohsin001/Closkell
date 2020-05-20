@@ -1,18 +1,7 @@
 from tokens import *
 from errors import InvalidSyntaxError
 from results import ParseResult
-from nodes import (
-                    NumberNode, StringNode,
-                    ListNode, MapNode,
-                    RecordNode, RecordInstanceNode,
-                    TupleNode, UnaryNode, BinOpNode,
-                    FuncDefNode, FunCallNode,
-                    FuncShowNode, ValNode,
-                    IfNode, PatternNode,
-                    ForNode, WhenNode,
-                    AlgebraDefNode, AddCaseNode,
-                    AddAlgebraCaseNode
-                )
+from nodes import *
 
 class Parser:
     def __init__(self, tokens):
@@ -322,6 +311,7 @@ class Parser:
         res = ParseResult()
         identifier = None
         function = FuncDefNode(None, [], None, self.current_tok.pos_start, self.current_tok.pos_end)
+        pos_start = self.current_tok.pos_start.copy()
         if not self.current_tok.matches(TT_KEYWORD, "curry"):
             return res.failure(InvalidSyntaxError(
         	   pos_start, self.current_tok.pos_end.copy(),
@@ -376,7 +366,7 @@ class Parser:
         	   pos_start, self.current_tok.pos_end.copy(),
                "Expected IDENTIFIER"
             ))
-        parent = RecordNode(self.current_tok, [], None, pos_start, self.current_tok.pos_end.copy())
+        parent = RecordNode(self.current_tok, [], None, None, pos_start, self.current_tok.pos_end.copy())
         res.register_advancement()
         self.advance()
         if self.current_tok.type != TT_EQUALS:
@@ -387,6 +377,7 @@ class Parser:
         res.register_advancement()
         self.advance()
         record = res.register(self.expr())
+        if res.error: return res
         record.extension = FuncShowNode(parent.type, pos_start, self.current_tok.pos_end.copy())
         if self.current_tok.type == TT_SARROW:
             res.register_advancement()
@@ -402,10 +393,12 @@ class Parser:
                 res.register_advancement()
                 self.advance()
                 record = res.register(self.expr())
+                if res.error: return res
                 record.extension = FuncShowNode(parent.type, pos_start, self.current_tok.pos_end.copy())
                 default = record
             else:
                 record = res.register(self.expr())
+                if res.error: return res
                 record.extension = FuncShowNode(parent.type, pos_start, self.current_tok.pos_end.copy())
                 if self.current_tok.type == TT_SARROW:
                     res.register_advancement()
@@ -794,6 +787,7 @@ class Parser:
         elements = []
         record_type = Token(TT_IDENTIFIER, "anonymous")
         extension = None
+        when_stmnt = None
         pos_start = self.current_tok.pos_start.copy()
         if self.current_tok.type == TT_IDENTIFIER:
             record_type = self.current_tok
@@ -833,12 +827,17 @@ class Parser:
                 ))
             res.register_advancement()
             self.advance()
+        if self.current_tok.matches(TT_KEYWORD, "when"):
+            res.register_advancement()
+            self.advance()
+            when_stmnt = res.register(self.statement())
+            if res.error: return res
         if self.current_tok.matches(TT_KEYWORD, "inherits"):
             res.register_advancement()
             self.advance()
             extension = res.register(self.expr())
             if res.error: return res
-        return res.success(RecordNode(record_type, elements, extension, pos_start, self.current_tok.pos_end.copy()))
+        return res.success(RecordNode(record_type, elements, when_stmnt, extension, pos_start, self.current_tok.pos_end.copy()))
 
     def set_expr(self):
         res = ParseResult()
