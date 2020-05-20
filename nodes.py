@@ -45,10 +45,11 @@ class MapNode:
         return str(self.elements)
 
 class RecordNode:
-    def __init__(self, type_, elements, extension, pos_start, pos_end):
+    def __init__(self, type_, elements, when_stmnt, extension, pos_start, pos_end):
         self.type = type_
         self.extension = extension
         self.elements = elements
+        self.when = when_stmnt
         self.pos_start = pos_start
         self.pos_end = pos_end
 
