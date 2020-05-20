@@ -1,4 +1,4 @@
-from errors import ExpectedCharError
+from errors import ExpectedCharError, IllegalCharacterError
 from tokens import *
 
 #Position
