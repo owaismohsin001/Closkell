@@ -1418,10 +1418,11 @@ class Interpreter:
                 context,
                 f"{identifier_expr} is not a List"
             ))
-        new_interpreter = Interpreter()
-        new_context = Context(id(new_interpreter), context, node.pos_start)
-        new_context.symbol_table = SymbolTable(new_context.parent.symbol_table)
+        last_context = context
         for element in identifier_expr.value:
+            new_interpreter = Interpreter()
+            new_context = Context(id(new_interpreter), last_context, node.pos_start)
+            new_context.symbol_table = SymbolTable(new_context.parent.symbol_table)
             new_context.symbol_table.set(node.iterator.value, element)
             if node.filter:
                 condition = res.register(self.visit(node.filter, new_context))
@@ -1429,6 +1430,7 @@ class Interpreter:
             if condition.is_true():
                 elements.append(res.register(new_interpreter.visit(node.expr, new_context)))
                 if res.should_return(): return res
+            last_context = new_context
         new_list = List(elements).set_pos(node.pos_start, node.pos_end).set_context(context)
         new_list.isarg = True
         return res.success(new_list)
