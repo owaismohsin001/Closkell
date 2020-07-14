@@ -208,3 +208,55 @@ true or false
 val a, b, c = (1, 2, 3)
 ```
 That's all. You now know about every base type closkell provides.
+
+# Case Covering
+## If expressions
+We would start by the simplest context that you can find in any language that allows you to cover different cases and make decisions based on boolean values, and the first expression is `if` expression, and most of youd already know that you use it like this,
+```
+let classifier n = if n == 5 then "equal" elif n>5 then "big" else "small"
+```
+## Pattern expressions
+Now `if` expression quite famously become redundant after a while and for those cases there are two constructs, the first one being patterns
+```
+let classifier n = | n == 5 -> "equal" | n>5 -> "big" | "small"
+```
+## Case exressions
+but when we need to see if things are equal and cover cases there, we reach for case expressions
+```
+let equaler n = case n -> | 5 -> "five" | 6 -> "six" | "weird"
+```
+Both in pattern and case expressions you can use a `where` clause to define stuff like this,
+```
+let equaler n = case n -> | x -> "five" | y -> "six" | "weird" where x, y = 5, 6
+```
+and
+```
+let classifier n = | n == const -> "equal" | n>const -> "big" | "small" where const = 5
+```
+## PolyMorphism with case classes
+PolyMorphism is very important when it comes to programming, especially in both OO an functional langugaes since their entire base is set on a sngle component. Closkell supports polymorphism through multimethods which are expressed here, in terms of case/classes. Like this,
+```
+class fac n
+case fac n==1 -> 1
+case fac default -> n*fac n-1
+```
+and saying `fac 5` here return `120`. Now let's see a somewhat more interesting form of polymorphism that will introduce new bindings, like what follows,
+```
+data shape = Circle{r} || Square{edge} || Triangle{a, b, c}
+
+class area obj where r, edge, a, b, c = obj => r, obj => edge, obj => a, obj => b, obj => c
+case area obj::Circle -> 3.14*r*r
+case area obj::Square -> edge*edge
+case area obj::Triangle -> (a*b)/c
+```
+Here you see that `where` clause again, while defining the class introduces new variables, by accessing fields of existing variables with the use of `=>` operator. Now you will very soon realize that it is more or less redundant to access all possible fields so there's an easier way to do that and it is this,
+```
+data shape = Circle{r} || Square{edge} || Triangle{a, b, c}
+
+class area obj where {} = obj
+case area obj::Circle -> 3.14*r*r
+case area obj::Square -> edge*edge
+case area obj::Triangle -> (a*b)/c
+```
+Here it makes the instance turns the instance it gets into our environment so we can access all the fields.
+### To be continued...
