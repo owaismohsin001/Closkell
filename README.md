@@ -207,4 +207,4 @@ true or false
 ```
 val a, b, c = (1, 2, 3)
 ```
-That's all. You now know about evry base type closkell provides.
+That's all. You now know about every base type closkell provides.
