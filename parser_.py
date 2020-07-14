@@ -596,6 +596,10 @@ class Parser:
             expr = res.register(self.pattern_match())
             if res.error: return res
             return res.success(expr)
+        elif self.current_tok.matches(TT_KEYWORD, "seq"):
+            expr = res.register(self.seq_expr())
+            if res.error: return res
+            return res.success(expr)
         return res.failure(InvalidSyntaxError(
     	   pos_start, self.current_tok.pos_end.copy(),
 		   "Expecte NUMBER, IDENTIFIER, if, or '('"
@@ -1088,4 +1092,39 @@ class Parser:
                     "IDENTIFIERS and expression are unequal"
                 ))
             vars = list(zip(identifiers, exprs))
-        return res.success(PatternNode(ifstatement, vars, pos_start, self.current_tok.pos_end.copy()))
+        return res.success(PatternNode(ifstatement, vars, None, pos_start, self.current_tok.pos_end.copy()))
+
+    def seq_expr(self):
+        res = ParseResult()
+        function = None
+        when_node = None
+        pos_start = self.current_tok.pos_start.copy()
+        if not self.current_tok.matches(TT_KEYWORD, "seq"):
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "Expected 'seq'"
+            ))
+        res.register_advancement()
+        self.advance()
+        statements_node = res.register(self.statements())
+        statements = statements_node.elements
+        if res.error: return res
+        if not self.current_tok.matches(TT_KEYWORD, "end"):
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "Expected 'end'"
+            ))
+        res.register_advancement()
+        self.advance()
+        if len(statements) < 2:
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "Expected at least two instructions in 'seq' block"
+            ))
+        when_node = WhenNode(statements[0], None, pos_start, self.current_tok.pos_end)
+        when_expr = when_node
+        for statement in statements[1:-1]:
+            when_expr.expr = WhenNode(statement, None, pos_start, self.current_tok.pos_end)
+            when_expr = when_expr.expr
+        when_expr.expr = statements[-1]
+        return res.success(when_node)
