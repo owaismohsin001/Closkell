@@ -3,7 +3,7 @@ Closkell is a dynamically typed, purely functional programming language with goo
 
 # Defining a variable
 ## Let Binding
-Saing variabe may be a reach since you can't really change its value because it's immutable, a better term would be defining a constant or perhaps defining a function. Since, the first binding we'll see is a recursive function based binding. It's known as `let` binding and here's how you perform it,
+Saying variabe may be a reach since you can't really change its value because it's immutable, a better term would be defining a constant or perhaps defining a function. Since, the first binding we'll see is a recursive function based binding. It's known as `let` binding and here's how you perform it,
 ```
 let x = 5
 ```
