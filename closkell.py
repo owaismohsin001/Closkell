@@ -59,6 +59,8 @@ class Value:
 
     def instance_return(self, other):
         predefined = self.predefined[other.value]
+        if other.value == "type":
+            return Type(predefined)
         if (isinstance(predefined, int) or isinstance(predefined, float)):
             return Number(predefined)
         elif isinstance(predefined, str):
@@ -303,6 +305,23 @@ class String(Value):
     def __repr__(self):
         return f"{self.value}"
 
+class Type(String):
+    def __init__(self, value):
+        super().__init__(value)
+        self.predefined = {
+            "type": "Type",
+            "id": id(self),
+            "value": self
+        }
+
+    def is_type(self, other):
+        return Bool(int(other.value == "Type")), None
+
+    def copy(self):
+        copy = Type(self.value)
+        copy.set_pos(self.pos_start, self.pos_end)
+        copy.set_context(self.context)
+        return copy
 
 class BaseFunction(Value):
     def __init__(self, name):
@@ -920,7 +939,7 @@ class Record(Map):
                 if other.value in self.predefined:
                     return self.predefined[other.value], None
                 elif other.value == "type":
-                    return String(self.predefined['types'][-1]), None
+                    return Type(self.predefined['types'][-1]), None
                 return null.set_context(self.context).set_pos(self.pos_start, other.pos_end), None
             return val, None
         else:
@@ -1599,15 +1618,16 @@ global_symbol_table = SymbolTable()
 global_symbol_table.set('false', false)
 global_symbol_table.set('true', true)
 global_symbol_table.set('null', null)
-global_symbol_table.set('String', String("String"))
-global_symbol_table.set('Number', String("Number"))
-global_symbol_table.set('List', String("List"))
-global_symbol_table.set('Tuple', String("Tuple"))
-global_symbol_table.set('Map', String("Map"))
-global_symbol_table.set('Set', String("Set"))
-global_symbol_table.set('Function', String("Function"))
-global_symbol_table.set('Bool', String("Bool"))
-global_symbol_table.set('NullType', String("NullType"))
+global_symbol_table.set('String', Type("String"))
+global_symbol_table.set('Number', Type("Number"))
+global_symbol_table.set('List', Type("List"))
+global_symbol_table.set('Tuple', Type("Tuple"))
+global_symbol_table.set('Map', Type("Map"))
+global_symbol_table.set('Set', Type("Set"))
+global_symbol_table.set('Function', Type("Function"))
+global_symbol_table.set('Bool', Type("Bool"))
+global_symbol_table.set('Type', Type("Type"))
+global_symbol_table.set('NullType', Type("NullType"))
 
 def immutableCheck(name, context, pos_start, pos_end):
     res = RTResult()
