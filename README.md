@@ -1,5 +1,5 @@
 # Closkell
-Closkell is a dynamically typed, purely functional programming language with goodies from both Haskell and Clojure. The language is currently in its alpha release therefore the only way to interact with it right now is the use of the repl.
+Closkell is a dependantly and dynamically typed, purely functional programming language with goodies from both Haskell and Clojure. The language is currently in its alpha release therefore the only way to interact with it right now is the use of the repl.
 
 # Defining a variable
 ## Let Binding
