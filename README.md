@@ -233,6 +233,12 @@ and
 ```
 let classifier n = | n == const -> "equal" | n>const -> "big" | "small" where const = 5
 ```
+### Nature of Types
+Types in this language are very much similar to how they are in "mainstream" dependantly typed and total functional languages. Here types are first classes, which entails that they can be treated just like values. All operations on values can also be performed on types, and vice versa. This is why you do not need a generics system since generics are also just very simple variables. Because of types literally being values, you can
+```
+::john + "s"
+```
+where `john` is a `Person` type and here the resulting type would be `Persons` type which was just created for us by mangling a few types together.
 ## PolyMorphism with case classes
 PolyMorphism is very important when it comes to programming, especially in both OO an functional langugaes since their entire base is set on a sngle component. Closkell supports polymorphism through multimethods which are expressed here, in terms of case/classes. Like this,
 ```
