@@ -1,3 +1,5 @@
+import readline
+
 from errors import RTError
 from lexer import Lexer
 from parser_ import Parser
