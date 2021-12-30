@@ -1,5 +1,5 @@
 # Closkell
-Closkell is a dependantly and dynamically typed, purely functional programming language with goodies from both Haskell and Clojure. The language is currently in its alpha release therefore the only way to interact with it right now is the use of the repl.
+Closkell is a dynamically typed, purely functional programming language with goodies from both Haskell and Clojure. The language is currently in its alpha release therefore the only way to interact with it right now is the use of the repl.
 
 # Defining a variable
 ## Let Binding
@@ -234,7 +234,7 @@ and
 let classifier n = | n == const -> "equal" | n>const -> "big" | "small" where const = 5
 ```
 ### Nature of Types
-Types in this language are very much similar to how they are in "mainstream" dependantly typed and total functional languages. Here types are first classes, which entails that they can be treated just like values. All operations on values can also be performed on types, and vice versa. This is why you do not need a generics system since generics are also just very simple variables. Because of types literally being values, you can
+Types in this language are very much similar to how they are in "mainstream" dynamically typed languages. Here types are first classes, which entails that they can be treated just like values. All operations on values can also be performed on types, and vice versa. This is why you do not need a generics system since generics are also just very simple variables. Because of types literally being values, you can
 ```
 ::john + "s"
 ```
